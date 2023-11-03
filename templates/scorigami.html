@@ -2,6 +2,19 @@
 <html lang="en">
 <table style="table-layout: fixed;">
     <tr>
+        <td colspan="4">
+            {% if first_year!=current_year %}
+                <button onclick="window.location.href = '/fof-scorigami/html/{{ current_year-1 }}.html';">last game </button>
+            {% endif %}
+        </td>
+        <td colspan="{{ highest_score - 6 }}"></td>
+        <td colspan="4">
+            {% if last_year!=current_year %}
+                <button onclick="window.location.href = '/fof-scorigami/html/{{ current_year+1 }}.html';">next game</button>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
         {% for higher_score in range(highest_score + 1) %}
         <th style="width: 18px;">
             {{ higher_score }}

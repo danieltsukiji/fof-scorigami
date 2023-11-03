@@ -9,16 +9,23 @@ league_data_path = "C:\\Users\\bassl\\AppData\\Local\\Solecismic Software\\Front
 class Scorigami:
     highest_score: int
     first_year: int
-    current_year: int
+    last_year: int
     scores: dict[int, dict[int, int]]
 
     def get_html(self, current_year: int | None):
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template("scorigami.html")
 
-        with open(f".\\html\\{current_year}.html", "w") as out:
+        with open(f".\\html\\{current_year or self.last_year}.html", "w") as out:
             out.write(
-                template.render(highest_score=self.highest_score, scores=self.scores, current_year=current_year or self.current_year))
+                template.render(
+                    first_year=self.first_year,
+                    highest_score=self.highest_score,
+                    scores=self.scores,
+                    current_year=current_year or self.last_year,
+                    last_year=self.last_year
+                )
+            )
 
 
 @dataclass
@@ -64,19 +71,19 @@ def process_game_information(league_name: str) -> Scorigami:
             processed = _process_line(line)
             if processed:
                 losing_score, winning_score, year = processed
-                if not first_year:
+                if first_year == 0:
                     first_year = year
                 current_year = max(current_year, year)
                 if winning_score not in scores[losing_score]:
                     scores[losing_score][winning_score] = year
                     high_score = max(high_score, winning_score)
 
-    return Scorigami(highest_score=high_score, first_year=first_year, current_year=current_year, scores=scores)
+    return Scorigami(highest_score=high_score, first_year=first_year, last_year=current_year, scores=scores)
 
 
 if __name__ == "__main__":
     scorigami = process_game_information("RZBRZB15")
-    years = range(scorigami.first_year, scorigami.current_year + 1)
+    years = range(scorigami.first_year, scorigami.last_year + 1)
     index = Index(league="RZB", years=list(years))
 
     index.get_html()
