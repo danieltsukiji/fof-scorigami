@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<table style="table-layout: fixed;">
+    <tr>
+        {% for higher_score in range(highest_score + 1) %}
+        <th style="width: 18px;">
+            {{ higher_score }}
+        </th>
+        {% endfor %}
+    </tr>
+    {% for lower_score in range(highest_score + 1) %}
+    {% set inner_dict = scores.get(lower_score, {}) %}
+        <tr>
+            {% for higher_score in range(highest_score + 1) %}
+                    {% if higher_score in inner_dict %}
+                        {% if inner_dict[higher_score] == current_year %}
+                            <td style="background-color: red; " />
+                        {% elif inner_dict[higher_score] < current_year %}
+                            <td style="background-color: green; " />
+                        {% else %}
+                            <td style="background-color: white; " />
+                        {% endif %}
+                    {% elif lower_score > higher_score %}
+                        <td style="background-color: black;" />
+                    {% else %}
+                        <td style="background-color: white; " />
+                    {% endif %}
+            {% endfor %}
+            <th>
+                {{ lower_score }}
+            </th>
+        </tr>
+    {% endfor %}
+</table>
+</html>

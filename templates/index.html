@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ league }} Scorigami</title>
+</head>
+<body>
+    <ul>
+        {% for year in years %}
+            <li><a href="{{ '/html/%s.html'%year }}">{{ year }} </a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
