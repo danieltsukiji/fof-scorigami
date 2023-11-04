@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<link rel="stylesheet" type="text/css" href="../static/styles.css">
 <table style="table-layout: fixed;">
     <tr>
         <td colspan="4">
@@ -31,12 +32,12 @@
                         {% elif inner_dict[higher_score] < current_year %}
                             <td style="background-color: green; " />
                         {% else %}
-                            <td style="background-color: white; " />
+                            <td />
                         {% endif %}
                     {% elif lower_score > higher_score %}
                         <td style="background-color: black;" />
                     {% else %}
-                        <td style="background-color: white; " />
+                        <td />
                     {% endif %}
             {% endfor %}
             <th>
