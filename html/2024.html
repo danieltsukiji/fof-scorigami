@@ -9,7 +9,7 @@ function myFunction(popup_id, game_info) {
   summary = `${game_info.year}-${game_info.week_str}<br/>${game_info.winning_team} ${game_info.winning_score}<br/>${game_info.losing_team} ${game_info.losing_score}`
   game_str = `${game_info.year}${game_info.week}${game_info.away_team_id}${game_info.home_team_id}`
   box_html = `http://therzb.com/RZB/leaguehtml/box${game_str}.html`
-  log_html = `http://therzb.com/RZB/leaguehtml/log{game_str}.html`
+  log_html = `http://therzb.com/RZB/leaguehtml/log${game_str}.html`
   occurrences = `Occurrences: ${game_info.occurrences}`
   popup.innerHTML = `${summary}<br/>${occurrences}<br/><a href=${box_html}>Box Score</a><br/><a href=${log_html}>Game Log</a>`;
   popup.classList.toggle("show");
