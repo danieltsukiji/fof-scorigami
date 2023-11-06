@@ -5,10 +5,22 @@
     <title>{{ league }} Scorigami</title>
 </head>
 <body>
-    <ul>
-        {% for year in years %}
-            <li><a href="{{ '/fof-scorigami/html/%s.html'%year }}">{{ year }} </a></li>
+    <table style="margin-left: auto; margin-right: auto;"">
+        <thead>
+            <th colspan="100%" style="text-align: center; font-weight: bold; font-size: 30px;">
+                {{ league }} Scorigami
+            </th>
+        </thead>
+
+        {% for years in row_years %}
+        <tr>
+            {% for year in years %}
+            <td style="font-size: 20px;">
+                <a href="{{ '/fof-scorigami/html/%s.html'%year }}">{{ year }} </a>
+            </td>
+            {% endfor %}
+        </tr>
         {% endfor %}
-    </ul>
+    </table>
 </body>
 </html>

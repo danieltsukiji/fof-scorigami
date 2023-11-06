@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <link rel="stylesheet" type="text/css" href="../static/styles.css">
+
+<script>
+// When the user clicks on <div>, open the popup
+function myFunction(popup_id, game_info) {
+  popup = document.getElementById(popup_id);
+  summary = `${game_info.year}-${game_info.week_str}<br/>${game_info.winning_team} ${game_info.winning_score}<br/>${game_info.losing_team} ${game_info.losing_score}`
+  game_str = `${game_info.year}${game_info.week}${game_info.away_team_id}${game_info.home_team_id}`
+  box_html = `http://therzb.com/RZB/leaguehtml/box${game_str}.html`
+  log_html = `http://therzb.com/RZB/leaguehtml/log{game_str}.html`
+  occurrences = `Occurrences: ${game_info.occurrences}`
+  popup.innerHTML = `${summary}<br/>${occurrences}<br/><a href=${box_html}>Box Score</a><br/><a href=${log_html}>Game Log</a>`;
+  popup.classList.toggle("show");
+}
+</script>
+
 <table style="table-layout: fixed;">
     <tr>
         <td colspan="4">
@@ -17,7 +32,7 @@
     </tr>
     <tr>
         {% for higher_score in range(highest_score + 1) %}
-        <th style="width: 18px;">
+        <th>
             {{ higher_score }}
         </th>
         {% endfor %}
@@ -27,10 +42,16 @@
         <tr>
             {% for higher_score in range(highest_score + 1) %}
                     {% if higher_score in inner_dict %}
-                        {% if inner_dict[higher_score] == current_year %}
-                            <td style="background-color: red; " />
-                        {% elif inner_dict[higher_score] < current_year %}
-                            <td style="background-color: green; " />
+                        {% set game_info = inner_dict[higher_score] %}
+                        {% set popup_id = (game_info.year * 1000) + game_info.id %}
+                        {% if game_info.year == current_year %}
+                            <td class="popup" onclick="myFunction({{ popup_id }}, {{ game_info }})" style="background-color: red; " >
+                                <span class="popuptext" id="{{ popup_id }}">Popup text...</span>
+                            </td>
+                        {% elif game_info.year < current_year %}
+                            <td class="popup" onclick="myFunction({{ popup_id }}, {{ game_info }})" style="background-color: green; " >
+                                <span class="popuptext" id="{{ popup_id }}">{{ popup_id }}</span>
+                            </td>
                         {% else %}
                             <td />
                         {% endif %}
