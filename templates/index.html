@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ league }} Scorigami</title>
+    <title>FOF Scorigami</title>
 </head>
 <body>
-    <table style="margin-left: auto; margin-right: auto;"">
+    <table style="margin-left: auto; margin-right: auto;">
         <thead>
             <th colspan="100%" style="text-align: center; font-weight: bold; font-size: 30px;">
-                {{ league }} Scorigami
+                FOF Scorigami
             </th>
         </thead>
 
-        {% for years in row_years %}
+        {% for league in leagues %}
         <tr>
-            {% for year in years %}
-            <td style="font-size: 20px;">
-                <a href="{{ '/fof-scorigami/html/%s.html'%year }}">{{ year }} </a>
+            <td style="font-size: 20px; text-align: center;">
+                <a href="{{ '/fof-scorigami/html/%s-scorigami.html'%league.short_name }}">{{ league.short_name }} </a>
             </td>
-            {% endfor %}
         </tr>
         {% endfor %}
     </table>

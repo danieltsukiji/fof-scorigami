@@ -1,10 +1,11 @@
+import json
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 
 from jinja2 import Environment, FileSystemLoader
 
-league_data_path = "C:\\Users\\bassl\\AppData\\Local\\Solecismic Software\\Front Office Football Eight\\leaguedata\\"
+data_path = "C:\\Users\\bassl\\AppData\\Local\\Solecismic Software\\Front Office Football Eight\\leaguedata\\"
 
 
 class GameType(Enum):
@@ -14,6 +15,21 @@ class GameType(Enum):
     DIVISIONAL = "Divisional"
     CONFERENCE = "Conference"
     BOWL = "Bowl"
+
+
+@dataclass
+class League:
+    name: str
+    short_name: str
+    html_url: str
+
+    @property
+    def team_information_path(self) -> str:
+        return f"{data_path}{self.name}\\team_information.csv"
+
+    @property
+    def game_information_path(self) -> str:
+        return f"{data_path}{self.name}\\game_information.csv"
 
 
 @dataclass
@@ -64,22 +80,24 @@ class GameInfo:
 
 @dataclass
 class Scorigami:
+    league: League
     highest_score: int
     first_year: int
     last_year: int
     scores: dict[int, dict[int, dict]]
 
-    def get_html(self, current_year: int | None):
+    def get_html(self):
         env = Environment(loader=FileSystemLoader("templates"))
-        template = env.get_template("scorigami.html")
+        template = env.get_template("scorigami-js.html")
 
-        with open(f".\\html\\{current_year or self.last_year}.html", "w") as out:
+        with open(f".\\html\\{league.short_name}-scorigami.html", "w") as out:
             out.write(
                 template.render(
                     first_year=self.first_year,
                     highest_score=self.highest_score,
                     scores=self.scores,
-                    current_year=current_year or self.last_year,
+                    str_scores=json.dumps(self.scores),
+                    league=self.league,
                     last_year=self.last_year
                 )
             )
@@ -87,16 +105,14 @@ class Scorigami:
 
 @dataclass
 class Index:
-    league: str
-    all_years: list[int]
-    row_years: list[list[int]]
+    leagues: list[League]
 
     def get_html(self):
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template("index.html")
 
         with open("index.html", "w") as out:
-            out.write(template.render(league=self.league, all_years=self.all_years, row_years=self.row_years))
+            out.write(template.render(leagues=self.leagues))
 
 
 def _parse_game_type(text: str) -> GameType:
@@ -127,11 +143,10 @@ def _parse_week(text: str, game_type: GameType) -> str:
             return "25"
 
 
-def _map_team_id_to_city(league_name:str) -> dict[str, str]:
-    csv_path = f"{league_data_path}{league_name}\\team_information.csv"
+def _map_team_id_to_city(league: League) -> dict[str, str]:
     mapping = {}
 
-    with open(csv_path, "r") as file:
+    with open(league.team_information_path, "r") as file:
         for line in file.readlines():
             parts = line.split(",")
             mapping[parts[0]] = parts[14]
@@ -155,7 +170,6 @@ def _process_line(line: str, team_id_to_city_mapping: dict[str, str]) -> GameInf
     score_2 = int(parts[5])
     team_2_id = "{:0>2}".format(parts[6])
     team_2 = team_id_to_city_mapping[parts[6]]
-
 
     if score_1 < score_2:
         return GameInfo(
@@ -184,19 +198,18 @@ def _process_line(line: str, team_id_to_city_mapping: dict[str, str]) -> GameInf
     )
 
 
-def process_game_information(league_name: str) -> Scorigami:
-    csv_path = f"{league_data_path}{league_name}\\game_information.csv"
+def process_game_information(league: League) -> Scorigami:
     high_score = 0
     first_year = 0
     current_year = 0
 
-    with open(csv_path, "r") as csv_file:
+    with open(league.game_information_path, "r") as csv_file:
         lines = csv_file.readlines()
         scores = defaultdict(defaultdict)
         lines.reverse()
 
         for line in lines[:-1]:
-            game_info = _process_line(line, _map_team_id_to_city(league_name))
+            game_info = _process_line(line, _map_team_id_to_city(league))
             if game_info:
                 if first_year == 0:
                     first_year = game_info.year
@@ -207,15 +220,20 @@ def process_game_information(league_name: str) -> Scorigami:
                 else:
                     scores[game_info.losing_score][game_info.winning_score]["occurrences"] += 1
 
-    return Scorigami(highest_score=high_score, first_year=first_year, last_year=current_year, scores=scores)
+    return Scorigami(league=league, highest_score=high_score, first_year=first_year, last_year=current_year, scores=scores)
 
 
 if __name__ == "__main__":
-    scorigami = process_game_information("RZBRZB15")
-    all_years = list(range(scorigami.first_year, scorigami.last_year + 1))
-    index = Index(league="RZB", all_years=all_years, row_years=[all_years[i:i+5] for i in range(0, len(all_years), 5)])
+    leagues = [
+        League("RZBRZB15", "RZB", "http://therzb.com/RZB/leaguehtml/"),
+        League("NAFLNAFL", "NAFL", "http://www.naflsim.com/HTML/"),
+        League("1234USFL", "USFL", "https://www.fof-usfl.com/leaguehtml/"),
+        League("TFL01974", "TFL", "https://www.fof-tfl.com/leaguehtml/"),
+    ]
 
+    index = Index(leagues=leagues)
     index.get_html()
+    for league in leagues:
+        scorigami = process_game_information(league)
+        scorigami.get_html()
 
-    for year in all_years:
-        scorigami.get_html(year)

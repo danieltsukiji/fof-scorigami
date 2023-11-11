@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" type="text/css" href="../static/styles.css">
+<meta name="years" id="data" data-current-year="{{current_year}}" data-last-year="{{last_year}}" data-first-year="{{first_year}}" data-scores="{{scores}}">
+<script>
+function openPopup(popup_id, game_info) {
+  popup = document.getElementById(popup_id);
+  html_url = "{{ league.html_url }}"
+  summary = `${game_info.year}-${game_info.week_str}<br/>${game_info.winning_team} ${game_info.winning_score}<br/>${game_info.losing_team} ${game_info.losing_score}`
+  game_str = `${game_info.year}${game_info.week}${game_info.away_team_id}${game_info.home_team_id}`
+  box_html = `${html_url}box${game_str}.html`
+  log_html = `${html_url}log${game_str}.html`
+  occurrences = `Occurrences: ${game_info.occurrences}`
+  popup.innerHTML = `${summary}<br/>${occurrences}<br/><a href=${box_html}>Box Score</a><br/><a href=${log_html}>Game Log</a>`;
+  popup.classList.toggle("show");
+}
+
+function setTDDetails(higher_score, lower_score, current_year, game_info) {
+    if (lower_score <= higher_score && game_info) {
+        td = document.getElementById("td_" + higher_score + lower_score);
+        if (current_year == game_info.year) {
+            td.className="popup";
+            td.onclick= () => openPopup((game_info.year * 1000) + game_info.id, game_info);
+            td.style="background-color: red; ";
+            td.innerHTML="<span class='popuptext' id=" + ((game_info.year * 1000) + game_info.id) + "></span>";
+        } else if (current_year > game_info.year) {
+            td.className="popup";
+            td.onclick=() => openPopup((game_info.year * 1000) + game_info.id, game_info);
+            td.style="background-color: green; ";
+            td.innerHTML="<span class='popuptext' id=" + ((game_info.year * 1000) + game_info.id) + "></span>";
+        } else {
+            td.removeAttribute("class");
+            td.removeAttribute("onClick");
+            td.removeAttribute("style");
+            td.innerHTML="";
+        }
+    }
+}
+</script>
+
+<table style="table-layout: fixed;">
+    <tr style="background-color: white;">
+        <td colspan="100%">
+            <div class="slidecontainer">
+                <input type="range" min="{{ first_year }}" max="{{ last_year }}" value="{{ current_year }}" class="slider" id="yearSlider" oninput="setYear()">
+            </div>
+        </td>
+    </tr>
+    <tr style="background-color: white;">
+        <td colspan="4">
+        </td>
+        <td colspan="{{ highest_score - 6 }}" id="year_display" style="text-align: center;"></td>
+        <td colspan="4">
+        </td>
+    </tr>
+    <tr>
+        {% for higher_score in range(highest_score + 1) %}
+        <th>
+            {{ higher_score }}
+        </th>
+        {% endfor %}
+    </tr>
+    {% for lower_score in range(highest_score + 1) %}
+    {% set inner_dict = scores.get(lower_score, {}) %}
+        <tr>
+            {% for higher_score in range(highest_score + 1) %}
+                {% if higher_score >= lower_score %}
+                    {% set td_id = "td_" ~ higher_score ~ lower_score %}
+                    <td id="{{ td_id }}"></td>
+                {% else %}
+                    <td style="background-color: black;"></td>
+                {% endif %}
+            {% endfor %}
+            <th>
+                {{ lower_score }}
+            </th>
+        </tr>
+    {% endfor %}
+</table>
+<script>
+    var slider = document.getElementById("yearSlider");
+    var output = document.getElementById("year_display");
+
+    slider.oninput = function() {
+        var current_year = this.value;
+        var json_scores = JSON.parse('{{ str_scores }}');
+
+        output.innerHTML = this.value;
+        for (let i = 0; i <= "{{ highest_score }}"; i++) {
+            for (let j = 0; j <= "{{ highest_score }}"; j++) {
+                if (j in json_scores && i in json_scores[j]) {
+                    setTDDetails(i, j, current_year, json_scores[j][i]);
+                }
+            }
+        }
+    }
+    slider.value = "{{ last_year }}"
+    slider.oninput()
+</script>
+</html>
